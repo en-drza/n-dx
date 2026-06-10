@@ -20,7 +20,7 @@
 
 import { getModelsForVendor, getRecommendedModel } from "./llm-model-catalog.js";
 
-const SUPPORTED_PROVIDERS = ["codex", "claude"];
+const SUPPORTED_PROVIDERS = ["codex", "claude", "antigravity"];
 const LEGACY_CATALOG_MODEL_ALIASES = {
   codex: ["gpt-5-codex", "gpt-5.1-codex-max", "gpt-5.1-codex-mini"],
   claude: [],
@@ -35,6 +35,7 @@ const LEGACY_CATALOG_MODEL_ALIASES = {
 const PROVIDER_LABELS = {
   codex: "Codex (OpenAI)",
   claude: "Claude (Anthropic)",
+  antigravity: "Antigravity (Google)",
 };
 
 /**
@@ -307,11 +308,11 @@ export async function promptLLMSelection(resolution, options = {}) {
  * @param {string} [flags.provider]      --provider= value
  * @param {string} [flags.model]         --model= value
  * @param {string} [flags.claudeModel]   --claude-model= value
- * @param {string} [flags.codexModel]    --codex-model= value
+ * @param {string} [flags.antigravityModel] --antigravity-model= value
  *
  * @returns {{ errors: string[], warnings: string[] }}
  */
-export function validateInitFlags({ provider, model, claudeModel, codexModel }) {
+export function validateInitFlags({ provider, model, claudeModel, codexModel, antigravityModel }) {
   const errors = [];
   const warnings = [];
   const isKnownModel = (vendor, value) => {
@@ -329,6 +330,9 @@ export function validateInitFlags({ provider, model, claudeModel, codexModel }) 
   }
   if (codexModel && model) {
     errors.push("Cannot set both --codex-model and --model. Use one or the other.");
+  }
+  if (antigravityModel && model) {
+    errors.push("Cannot set both --antigravity-model and --model. Use one or the other.");
   }
 
   // Note: --claude-model + --codex-model is valid (configure both vendors).
@@ -359,9 +363,19 @@ export function validateInitFlags({ provider, model, claudeModel, codexModel }) 
       }
     }
 
+    if (antigravityModel) {
+      const catalog = getModelsForVendor("antigravity");
+      if (catalog && !isKnownModel("antigravity", antigravityModel)) {
+        warnings.push(
+          `Unknown model "${antigravityModel}" for antigravity. ` +
+          `Known models: ${catalog.map((m) => m.id).join(", ")}. Proceeding anyway.`,
+        );
+      }
+    }
+
     // Check --model against the effective provider (flag or implied).
     if (model) {
-      const effectiveProvider = provider || (claudeModel ? "claude" : codexModel ? "codex" : undefined);
+      const effectiveProvider = provider || (claudeModel ? "claude" : codexModel ? "codex" : antigravityModel ? "antigravity" : undefined);
       if (effectiveProvider) {
         const catalog = getModelsForVendor(effectiveProvider);
         if (catalog && !isKnownModel(effectiveProvider, model)) {

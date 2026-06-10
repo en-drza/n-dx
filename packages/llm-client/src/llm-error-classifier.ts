@@ -119,6 +119,14 @@ export function classifyLLMError(
         category: "auth",
       };
     }
+    if (vendor === "antigravity") {
+      return {
+        message: `Authentication failed — Antigravity CLI credentials were rejected.${suffix}`,
+        suggestion:
+          "Check your Antigravity login (e.g. agy login) and try again.",
+        category: "auth",
+      };
+    }
     return {
       message: `Authentication failed — your API key was rejected.${suffix}`,
       suggestion:
@@ -215,14 +223,23 @@ export function classifyLLMError(
   if (
     msg.includes("codex cli not found") ||
     msg.includes("claude cli not found") ||
+    msg.includes("antigravity cli not found") ||
     (msg.includes("enoent") &&
-      (msg.includes("claude") || msg.includes("codex")))
+      (msg.includes("claude") || msg.includes("codex") || msg.includes("antigravity") || msg.includes("agy")))
   ) {
     if (vendor === "codex") {
       return {
         message: "Codex CLI not found on your system.",
         suggestion:
           "Install Codex CLI and/or set its path: n-dx config llm.codex.cli_path /path/to/codex",
+        category: "unknown",
+      };
+    }
+    if (vendor === "antigravity") {
+      return {
+        message: "Antigravity CLI (agy) not found on your system.",
+        suggestion:
+          "Install the Antigravity CLI and/or set its path: n-dx config llm.antigravity.cli_path /path/to/agy",
         category: "unknown",
       };
     }
@@ -272,10 +289,12 @@ export function classifyLLMError(
 
   // ── Generic fallback ──────────────────────────────────────────────
   const label = ctx?.label ?? "complete the request";
-  const authHint =
-    vendor === "codex"
-      ? "Check Codex CLI login (codex login) and your network connection, then try again."
-      : "Check your API key and network connection, then try again.";
+  let authHint = "Check your API key and network connection, then try again.";
+  if (vendor === "codex") {
+    authHint = "Check Codex CLI login (codex login) and your network connection, then try again.";
+  } else if (vendor === "antigravity") {
+    authHint = "Check Antigravity CLI login and your network connection, then try again.";
+  }
   return {
     message: `Failed to ${label}: ${err.message}${suffix}`,
     suggestion: authHint,

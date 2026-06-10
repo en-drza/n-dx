@@ -35,6 +35,7 @@ const ALLOWED = new Set([
   // CLI streaming providers — need raw spawn for event-by-event parsing
   "packages/llm-client/src/cli-provider.ts",
   "packages/llm-client/src/codex-cli-provider.ts",
+  "packages/llm-client/src/antigravity-cli-provider.ts",
   "packages/hench/src/agent/lifecycle/cli-loop.ts",
   // Orchestration layer — spawns CLIs directly (no library imports)
   "packages/core/bin/rex.js",

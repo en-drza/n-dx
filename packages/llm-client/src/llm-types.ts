@@ -51,6 +51,22 @@ export interface CodexConfig {
   lightModel?: string;
 }
 
+/** Optional Antigravity-specific config section in `.n-dx.json`. */
+export interface AntigravityConfig {
+  /** Path to Antigravity CLI binary. Defaults to `agy`. */
+  cli_path?: string;
+  /** API key used by future Antigravity API providers. */
+  api_key?: string;
+  /** Optional custom API endpoint. */
+  api_endpoint?: string;
+  /** Default model for Antigravity requests. */
+  model?: string;
+  /**
+   * Model override for the 'light' task weight tier.
+   */
+  lightModel?: string;
+}
+
 /** Vendor-neutral config shape loaded from `.n-dx.json`. */
 export interface LLMConfig {
   /** Default vendor selected by the project. */
@@ -66,6 +82,8 @@ export interface LLMConfig {
   claude?: ClaudeConfig;
   /** Codex-specific config (reserved for adapter integration). */
   codex?: CodexConfig;
+  /** Antigravity-specific config (experimental provider adapter). */
+  antigravity?: AntigravityConfig;
   /**
    * Enable automatic failover on model/vendor errors.
    * When true, hench retries failed runs on fallback models before surfacing errors.

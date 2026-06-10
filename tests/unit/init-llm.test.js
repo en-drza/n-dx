@@ -670,6 +670,7 @@ describe("PROVIDER_LABELS", () => {
   it("includes both codex and claude as selectable options", () => {
     expect(PROVIDER_LABELS).toHaveProperty("codex");
     expect(PROVIDER_LABELS).toHaveProperty("claude");
+    expect(PROVIDER_LABELS).toHaveProperty("antigravity");
   });
 
   it("labels are friendly display strings, not raw keys", () => {
@@ -687,6 +688,10 @@ describe("PROVIDER_LABELS", () => {
   it("claude label is Claude (Anthropic)", () => {
     expect(PROVIDER_LABELS.claude).toBe("Claude (Anthropic)");
   });
+
+  it("antigravity label is Antigravity (Google)", () => {
+    expect(PROVIDER_LABELS.antigravity).toBe("Antigravity (Google)");
+  });
 });
 
 // ─── LLM Model Catalog ──────────────────────────────────────────────────────
@@ -695,6 +700,7 @@ describe("LLM_MODEL_CATALOG", () => {
   it("has entries for both supported providers", () => {
     expect(LLM_MODEL_CATALOG).toHaveProperty("codex");
     expect(LLM_MODEL_CATALOG).toHaveProperty("claude");
+    expect(LLM_MODEL_CATALOG).toHaveProperty("antigravity");
   });
 
   it("each vendor has at least one model", () => {
@@ -744,7 +750,14 @@ describe("LLM_MODEL_CATALOG", () => {
 
   it("recommended Codex model is gpt-5.5", () => {
     const recommended = LLM_MODEL_CATALOG.codex.find((m) => m.recommended);
+    expect(recommended).toBeDefined();
     expect(recommended.id).toBe("gpt-5.5");
+  });
+
+  it("recommended Antigravity model is gemini-default", () => {
+    const recommended = LLM_MODEL_CATALOG.antigravity.find((m) => m.recommended);
+    expect(recommended).toBeDefined();
+    expect(recommended.id).toBe("gemini-default");
   });
 });
 

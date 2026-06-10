@@ -42,6 +42,10 @@ export const LLM_MODEL_CATALOG = {
     { id: "claude-opus-4-8", label: "Claude Opus 4.8", recommended: false },
     { id: "claude-haiku-4-5", label: "Claude Haiku 4.5", recommended: false },
   ],
+  antigravity: [
+    { id: "gemini-default", label: "Gemini Default", recommended: true },
+    { id: "gemini-flash", label: "Gemini Flash", recommended: false },
+  ],
 };
 
 /**

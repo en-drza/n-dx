@@ -41,6 +41,7 @@ import type { LLMProvider, ProviderInfo } from "./provider-interface.js";
 import type { LLMConfig } from "./llm-types.js";
 import { createClient } from "./create-client.js";
 import { createCodexCliClient } from "./codex-cli-provider.js";
+import { createAntigravityCliClient } from "./antigravity-cli-provider.js";
 import { createOpenAiApiProvider, resolveOpenAiApiKey } from "./openai-api-provider.js";
 
 // ── Factory type ──────────────────────────────────────────────────────────
@@ -193,6 +194,21 @@ export function createDefaultRegistry(): ProviderRegistry {
       vendor: "codex",
       mode: "cli",
       model: config.codex?.model,
+      capabilities: [],
+    };
+    return {
+      info,
+      complete: (request) => client.complete(request),
+    } satisfies LLMProvider;
+  });
+
+  // Antigravity: experimental CLI adapter.
+  registry.register("antigravity", (config) => {
+    const client = createAntigravityCliClient({ antigravityConfig: config.antigravity });
+    const info: ProviderInfo = {
+      vendor: "antigravity",
+      mode: "cli",
+      model: config.antigravity?.model,
       capabilities: [],
     };
     return {

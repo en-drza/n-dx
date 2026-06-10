@@ -35,6 +35,7 @@ export const DEFAULT_CLAUDE_MODEL = "claude-sonnet-4-6";
 export const NEWEST_MODELS: Record<LLMVendor, string> = {
   claude: "claude-sonnet-4-6",
   codex: "gpt-5.5",
+  antigravity: "gemini-default",
 };
 
 /**
@@ -54,6 +55,10 @@ export const TIER_MODELS: Record<LLMVendor, Record<TaskWeight, string>> = {
   codex: {
     light: "gpt-5.4-mini",
     standard: NEWEST_MODELS.codex,
+  },
+  antigravity: {
+    light: "gemini-flash",
+    standard: NEWEST_MODELS.antigravity,
   },
 };
 
@@ -79,6 +84,7 @@ const LEGACY_CODEX_MODEL_ALIASES: Record<string, string> = {
 export const VENDOR_CONTEXT_CHAR_LIMITS: Record<LLMVendor, number> = {
   claude: 640_000,
   codex: 400_000,
+  antigravity: 1_000_000,
 };
 
 /**
@@ -172,6 +178,21 @@ export function resolveVendorModel(
       return normalizeCodexModel(config.codex.model);
     }
     return TIER_MODELS.codex.standard;
+  }
+  if (vendor === "antigravity") {
+    if (weight === "light") {
+      if (config?.antigravity?.lightModel) {
+        return config.antigravity.lightModel;
+      }
+      return TIER_MODELS.antigravity.light;
+    }
+    if (config?.model) {
+      return config.model;
+    }
+    if (config?.antigravity?.model) {
+      return config.antigravity.model;
+    }
+    return TIER_MODELS.antigravity.standard;
   }
   // Unknown vendor: return whatever is registered, or empty string as a
   // safe sentinel (callers should not reach this branch in practice).

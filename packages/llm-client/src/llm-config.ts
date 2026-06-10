@@ -8,7 +8,7 @@
 import { join } from "node:path";
 import { access, readFile } from "node:fs/promises";
 import { deepMerge } from "./project-config.js";
-import type { LLMConfig, LLMVendor, CodexConfig } from "./llm-types.js";
+import type { LLMConfig, LLMVendor, CodexConfig, AntigravityConfig } from "./llm-types.js";
 import type { ClaudeConfig } from "./types.js";
 import { normalizeCodexModel } from "./config.js";
 
@@ -20,7 +20,7 @@ function asRecord(value: unknown): Record<string, unknown> | undefined {
 }
 
 function extractVendor(value: unknown): LLMVendor | undefined {
-  return value === "claude" || value === "codex" ? value : undefined;
+  return value === "claude" || value === "codex" || value === "antigravity" ? value : undefined;
 }
 
 function extractClaudeConfig(value: unknown): ClaudeConfig | undefined {
@@ -49,6 +49,19 @@ function extractCodexConfig(value: unknown): CodexConfig | undefined {
   return Object.keys(cfg).length > 0 ? cfg : undefined;
 }
 
+function extractAntigravityConfig(value: unknown): AntigravityConfig | undefined {
+  const v = asRecord(value);
+  if (!v) return undefined;
+
+  const cfg: AntigravityConfig = {};
+  if (typeof v.cli_path === "string" && v.cli_path) cfg.cli_path = v.cli_path;
+  if (typeof v.api_key === "string" && v.api_key) cfg.api_key = v.api_key;
+  if (typeof v.api_endpoint === "string" && v.api_endpoint) cfg.api_endpoint = v.api_endpoint;
+  if (typeof v.model === "string" && v.model) cfg.model = v.model;
+  if (typeof v.lightModel === "string" && v.lightModel) cfg.lightModel = v.lightModel;
+  return Object.keys(cfg).length > 0 ? cfg : undefined;
+}
+
 /**
  * Load and parse a JSON file, returning null on failure.
  */
@@ -71,6 +84,7 @@ function extractLLMConfig(root: Record<string, unknown>): LLMConfig {
   const llmVendor = extractVendor(llm?.vendor);
   const llmClaude = extractClaudeConfig(llm?.claude);
   const llmCodex = extractCodexConfig(llm?.codex);
+  const llmAntigravity = extractAntigravityConfig(llm?.antigravity);
   const legacyClaude = extractClaudeConfig(root.claude);
   const autoFailover =
     typeof llm?.autoFailover === "boolean" ? llm.autoFailover : undefined;
@@ -88,6 +102,7 @@ function extractLLMConfig(root: Record<string, unknown>): LLMConfig {
   }
   if (llmClaude || legacyClaude) config.claude = llmClaude ?? legacyClaude;
   if (llmCodex) config.codex = llmCodex;
+  if (llmAntigravity) config.antigravity = llmAntigravity;
   if (autoFailover !== undefined) config.autoFailover = autoFailover;
   return config;
 }
