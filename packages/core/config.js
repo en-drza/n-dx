@@ -590,9 +590,9 @@ const CLAUDE_VALIDATORS = {
  * Validate llm.vendor.
  */
 function validateLLMVendor(value) {
-  if (value !== "claude" && value !== "codex") {
+  if (value !== "claude" && value !== "codex" && value !== "antigravity") {
     throw new Error(
-      `Invalid vendor "${value}". Expected one of: claude, codex.`,
+      `Invalid vendor "${value}". Expected one of: claude, codex, antigravity.`,
     );
   }
 }
@@ -620,6 +620,7 @@ const LLM_VALIDATORS = {
   "codex.cli_path": validateCodexCliPath,
   "codex.api_endpoint": validateApiEndpoint,
   "codex.model": validateModel,
+  "antigravity.model": validateModel,
   autoFailover: validateAutoFailover,
 };
 
@@ -961,7 +962,7 @@ Claude settings (.n-dx.json / .n-dx.local.json — shared across all packages):
                                     Example: claude-haiku-4-5
 
 LLM vendor settings (.n-dx.json / .n-dx.local.json — preferred for multi-vendor setup):
-  llm.vendor               string    Active LLM vendor: "claude" or "codex"
+  llm.vendor               string    Active LLM vendor: "claude", "codex", or "antigravity"
                                     Required for multi-vendor workflows.
   llm.claude.cli_path      string    Claude CLI path (optional; validated executable)
                                     Stored in .n-dx.local.json.
@@ -1120,6 +1121,7 @@ Examples:
                                                Set default model for API calls
   n-dx config llm.vendor claude                Set active LLM vendor to Claude
   n-dx config llm.vendor codex                 Set active LLM vendor to Codex
+  n-dx config llm.vendor antigravity           Set active LLM vendor to Antigravity
   n-dx config llm.claude.api_key sk-ant-...    Set Claude API key (llm namespace)
   n-dx config llm.claude.model claude-opus-4-20250514
                                                Set Claude model (llm namespace)

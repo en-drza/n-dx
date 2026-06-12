@@ -167,8 +167,10 @@ const BASELINE_COMMIT_PATHS = [
   ".claude",
   ".codex",
   ".agents",
+  ".gemini",
   "CLAUDE.md",
   "AGENTS.md",
+  "ANTIGRAVITY.md",
   "README.md",
   "README.proposed.md",
 ];

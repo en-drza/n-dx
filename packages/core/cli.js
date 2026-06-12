@@ -456,7 +456,8 @@ function extractModelFlags(args) {
     (a) =>
       a.startsWith("--model=") ||
       a.startsWith("--claude-model=") ||
-      a.startsWith("--codex-model="),
+      a.startsWith("--codex-model=") ||
+      a.startsWith("--antigravity-model="),
   );
 }
 
@@ -493,8 +494,14 @@ function extractInitCodexModel(args) {
   return flag.slice("--codex-model=".length).trim();
 }
 
+function extractInitAntigravityModel(args) {
+  const flag = args.find((a) => a.startsWith("--antigravity-model="));
+  if (!flag) return undefined;
+  return flag.slice("--antigravity-model=".length).trim();
+}
+
 function stripInitVendorModelFlags(args) {
-  return args.filter((a) => !a.startsWith("--claude-model=") && !a.startsWith("--codex-model="));
+  return args.filter((a) => !a.startsWith("--claude-model=") && !a.startsWith("--codex-model=") && !a.startsWith("--antigravity-model="));
 }
 
 /**
@@ -514,7 +521,7 @@ function extractAssistantsFlag(args) {
 }
 
 /** All assistant-selection flags that should be stripped before passing to sub-inits. */
-const ASSISTANT_FLAGS = ["--no-claude", "--no-codex", "--claude-only", "--codex-only"];
+const ASSISTANT_FLAGS = ["--no-claude", "--no-codex", "--no-antigravity", "--claude-only", "--codex-only", "--antigravity-only"];
 
 function stripAssistantFlags(args) {
   return args.filter((a) => !ASSISTANT_FLAGS.includes(a) && !a.startsWith("--assistants="));
@@ -550,13 +557,15 @@ function resolveAssistantFlags(rest) {
   }
 
   // Exclusive convenience flags
-  if (rest.includes("--claude-only")) return { claude: true, codex: false };
-  if (rest.includes("--codex-only")) return { claude: false, codex: true };
+  if (rest.includes("--claude-only")) return { claude: true, codex: false, antigravity: false };
+  if (rest.includes("--codex-only")) return { claude: false, codex: true, antigravity: false };
+  if (rest.includes("--antigravity-only")) return { claude: false, codex: false, antigravity: true };
 
   // Individual skip flags
   return {
     claude: !rest.includes("--no-claude"),
     codex: !rest.includes("--no-codex"),
+    antigravity: !rest.includes("--no-antigravity"),
   };
 }
 
@@ -889,9 +898,10 @@ function parseInitFlagSet(rest) {
   const modelFromFlag = extractInitModel(rest);
   const claudeModelFromFlag = extractInitClaudeModel(rest);
   const codexModelFromFlag = extractInitCodexModel(rest);
+  const antigravityModelFromFlag = extractInitAntigravityModel(rest);
 
   if (providerFromFlag !== undefined && !SUPPORTED_PROVIDERS.includes(providerFromFlag)) {
-    console.error(`Error: Invalid provider "${providerFromFlag}". Expected one of: codex, claude.`);
+    console.error(`Error: Invalid provider "${providerFromFlag}". Expected one of: ${SUPPORTED_PROVIDERS.join(", ")}.`);
     exitWithCleanup(1);
   }
 
@@ -901,6 +911,7 @@ function parseInitFlagSet(rest) {
     model: modelFromFlag,
     claudeModel: claudeModelFromFlag,
     codexModel: codexModelFromFlag,
+    antigravityModel: antigravityModelFromFlag,
   });
 
   if (validation.errors.length > 0) {
@@ -928,16 +939,18 @@ function parseInitFlagSet(rest) {
   // A lone vendor-specific flag implies the provider (e.g. --claude-model=X → provider=claude).
   // When both vendor-specific flags are present, --provider is required to set the active vendor.
   const effectiveProvider = providerFromFlag
-    || (claudeModelFromFlag && !codexModelFromFlag ? "claude"
-      : codexModelFromFlag && !claudeModelFromFlag ? "codex"
+    || (claudeModelFromFlag && !codexModelFromFlag && !antigravityModelFromFlag ? "claude"
+      : codexModelFromFlag && !claudeModelFromFlag && !antigravityModelFromFlag ? "codex"
+      : antigravityModelFromFlag && !claudeModelFromFlag && !codexModelFromFlag ? "antigravity"
         : undefined);
 
   // The active model is the --model flag, or the vendor-specific flag matching the active provider.
   const effectiveModel = modelFromFlag
     || (effectiveProvider === "claude" ? claudeModelFromFlag : undefined)
-    || (effectiveProvider === "codex" ? codexModelFromFlag : undefined);
+    || (effectiveProvider === "codex" ? codexModelFromFlag : undefined)
+    || (effectiveProvider === "antigravity" ? antigravityModelFromFlag : undefined);
 
-  return { providerFromFlag, modelFromFlag, claudeModelFromFlag, codexModelFromFlag, effectiveProvider, effectiveModel };
+  return { providerFromFlag, modelFromFlag, claudeModelFromFlag, codexModelFromFlag, antigravityModelFromFlag, effectiveProvider, effectiveModel };
 }
 
 /**
@@ -988,12 +1001,15 @@ function resolveInitAssistants(rest, dir) {
   if (!hasExplicitAssistantFlags(rest)) {
     const claudePresent = existsSync(join(dir, ".claude")) || existsSync(join(dir, "CLAUDE.md"));
     const codexPresent = existsSync(join(dir, ".codex")) || existsSync(join(dir, ".agents")) || existsSync(join(dir, "AGENTS.md"));
+    const antigravityPresent = existsSync(join(dir, ".gemini/antigravity")) || existsSync(join(dir, "ANTIGRAVITY.md"));
 
     // When a prior init provisioned only one vendor, keep only that one enabled.
-    if (claudePresent && !codexPresent) {
-      assistantEnabled = { claude: true, codex: false };
-    } else if (!claudePresent && codexPresent) {
-      assistantEnabled = { claude: false, codex: true };
+    if (claudePresent && !codexPresent && !antigravityPresent) {
+      assistantEnabled = { claude: true, codex: false, antigravity: false };
+    } else if (!claudePresent && codexPresent && !antigravityPresent) {
+      assistantEnabled = { claude: false, codex: true, antigravity: false };
+    } else if (!claudePresent && !codexPresent && antigravityPresent) {
+      assistantEnabled = { claude: false, codex: false, antigravity: true };
     }
   }
 
@@ -1230,6 +1246,7 @@ async function handleInit(rest) {
         assistantEnabled,
         claudeModelFromFlag,
         codexModelFromFlag,
+        antigravityModelFromFlag,
         llmSkipped,
         tools,
         runInitCapture,

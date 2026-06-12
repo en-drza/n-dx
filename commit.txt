@@ -1,0 +1,9 @@
+feat(llm-client): add Antigravity CLI provider
+
+This commit introduces the Antigravity CLI provider for the `agy` tool, bringing Google models (Gemini) into the Core Pillar 1 vendor ecosystem. 
+
+Changes include:
+- A new `createAntigravityCliClient` provider adapter mapping n-dx ExecutionPolicy into Antigravity `--sandbox` and `--dangerously-skip-permissions` CLI flags.
+- Registration of the `antigravity` vendor in `provider-registry.ts` alongside Codex and Claude.
+- `init-llm.js` interactive model selector support for Antigravity defaults (`gemini-default` and `gemini-flash`).
+- Strict typing and CLI availability checks via `requireLLMCLI` in the Hench package.

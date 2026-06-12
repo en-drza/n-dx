@@ -102,6 +102,13 @@
       "skillWrapper": "yaml-frontmatter",
       "toolPrefix": null,
       "instructionFile": "AGENTS.md"
+    },
+    "antigravity": {
+      "skillDir": ".gemini/antigravity/skills",
+      "skillFile": "SKILL.md",
+      "skillWrapper": "yaml-frontmatter",
+      "toolPrefix": null,
+      "instructionFile": "ANTIGRAVITY.md"
     }
   }
 }
