@@ -179,6 +179,7 @@ function InitApp({
   assistantEnabled,
   claudeModelFromFlag,
   codexModelFromFlag,
+  antigravityModelFromFlag,
   llmSkipped,
   tools,
   runInitCapture,
@@ -247,6 +248,9 @@ function InitApp({
         }
         if (codexModelFromFlag && provider !== "codex") {
           await spawnAsync("node", [cliPath, "config", "llm.codex.model", codexModelFromFlag, dir]);
+        }
+        if (antigravityModelFromFlag && provider !== "antigravity") {
+          await spawnAsync("node", [cliPath, "config", "llm.antigravity.model", antigravityModelFromFlag, dir]);
         }
       }
 

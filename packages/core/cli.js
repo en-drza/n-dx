@@ -1028,12 +1028,12 @@ function resolveInitAssistants(rest, dir) {
  * @param {string|undefined} effectiveProvider
  * @param {string|undefined} effectiveModel
  * @param {boolean} quiet
- * @param {{ providerFromFlag?: string, claudeModelFromFlag?: string, codexModelFromFlag?: string }} vendorFlags
+ * @param {{ providerFromFlag?: string, claudeModelFromFlag?: string, codexModelFromFlag?: string, antigravityModelFromFlag?: string }} vendorFlags
  * @returns {Promise<{ selectedProvider: string|undefined, selection: object,
  *   llmSkipped: boolean, providerSource: string, modelSource: string }>}
  */
 async function selectInitLLMProvider(dir, effectiveProvider, effectiveModel, quiet, vendorFlags = {}) {
-  const { providerFromFlag, claudeModelFromFlag, codexModelFromFlag } = vendorFlags;
+  const { providerFromFlag, claudeModelFromFlag, codexModelFromFlag, antigravityModelFromFlag } = vendorFlags;
 
   const existingVendor = readLLMVendor(dir);
   const existingModel = readLLMModel(dir, effectiveProvider || existingVendor);
@@ -1057,8 +1057,8 @@ async function selectInitLLMProvider(dir, effectiveProvider, effectiveModel, qui
   const modelFlagLabel = (selection.model === claudeModelFromFlag && claudeModelFromFlag) ? "--claude-model"
     : (selection.model === codexModelFromFlag && codexModelFromFlag) ? "--codex-model"
       : "--model";
-  const providerFlagLabel = (!providerFromFlag && (claudeModelFromFlag || codexModelFromFlag))
-    ? `--${claudeModelFromFlag && !codexModelFromFlag ? "claude" : codexModelFromFlag && !claudeModelFromFlag ? "codex" : "vendor"}-model`
+  const providerFlagLabel = (!providerFromFlag && (claudeModelFromFlag || codexModelFromFlag || antigravityModelFromFlag))
+    ? `--${claudeModelFromFlag && !codexModelFromFlag && !antigravityModelFromFlag ? "claude" : codexModelFromFlag && !claudeModelFromFlag && !antigravityModelFromFlag ? "codex" : antigravityModelFromFlag && !claudeModelFromFlag && !codexModelFromFlag ? "antigravity" : "vendor"}-model`
     : "--provider";
   const PROVIDER_SOURCE_LABELS = { flag: `from ${providerFlagLabel} flag`, config: "from existing config", prompt: "selected" };
   const MODEL_SOURCE_LABELS = { flag: `from ${modelFlagLabel} flag`, config: "from existing config", prompt: "selected" };
@@ -1194,7 +1194,7 @@ function formatReadmeSummaryLines(result) {
 }
 
 async function handleInit(rest) {
-  const { effectiveProvider, effectiveModel, claudeModelFromFlag, codexModelFromFlag, providerFromFlag } = parseInitFlagSet(rest);
+  const { effectiveProvider, effectiveModel, claudeModelFromFlag, codexModelFromFlag, antigravityModelFromFlag, providerFromFlag } = parseInitFlagSet(rest);
 
   const initArgs = buildInitArgs(rest);
   const dir = resolveDir(initArgs);
@@ -1210,7 +1210,7 @@ async function handleInit(rest) {
 
   const assistantEnabled = resolveInitAssistants(rest, dir);
   const llmResult = await selectInitLLMProvider(dir, effectiveProvider, effectiveModel, quiet, {
-    providerFromFlag, claudeModelFromFlag, codexModelFromFlag,
+    providerFromFlag, claudeModelFromFlag, codexModelFromFlag, antigravityModelFromFlag
   });
   const { selectedProvider, selection, llmSkipped, providerSource, modelSource } = llmResult;
 
